@@ -23,6 +23,18 @@ impl Vec3 {
     pub fn squared_length(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
+
+    pub fn length(&self) -> f64 {
+        ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt()
+    }
+
+    pub fn unit(&self) -> Self {
+        Self {
+            x: self.x / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
+            y: self.y / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
+            z: self.z / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
+        }
+    }
 }
 
 impl Add for Vec3 {
@@ -116,12 +128,8 @@ impl SubAssign<f64> for Vec3 {
 impl Mul for Vec3 {
     type Output = Self;
 
-    fn mul(self, other: Self) -> Self {
-        Self {
-            x: self.x * other.x,
-            y: self.y * other.y,
-            z: self.z * other.z,
-        }
+    fn mul(self, other: Self) -> f64 {
+        self.x * other.x + self.y * other.y + self.z * other.z
     }
 }
 
@@ -147,14 +155,51 @@ impl MulAssign for Vec3 {
     }
 }
 
-impl div for Vec3 {
+impl Div for Vec3 {
     type Output = Self;
 
     fn div(self, other: Self) -> Self {
         Self {
-            x: self.x / other.x,
-            y: self.y / other.y,
-            z: self.z / other.z,
+            x: self.x *(1/other.x),
+            y: self.y *(1/other.y),
+            z: self.z *(1/other.z),
+        }
+    }
+}
+
+impl EleMul for Vec3 {
+    type Output = Self;
+
+    fn elemul(self, other: Self) -> Self {
+        Self {
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+        }
+    }
+}
+
+impl Cross for Vec3 {
+    type Output = Self;
+
+    fn cross(self, other: Self) -> Self {
+        Self {
+            x: self.y * other.z - self.z * other.y,
+            y: self.z * other.x - self.x * other.z,
+            z: self.x * other.y - self.y * other.x,
+        }
+    }
+}
+
+
+impl Neg for Vec3 {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Self {
+            x: self.x * (-1),
+            y: self.y * (-1),
+            z: self.z * (-1),
         }
     }
 }
@@ -246,7 +291,7 @@ mod tests {
     fn test_div() {
         assert_eq!(Vec3::new(1.0, -2.0, 0.0) / 2.0, Vec3::new(0.5, -1.0, 0.0));
     }
-/*
+
     #[test]
     fn test_elemul() {
         assert_eq!(
@@ -267,14 +312,12 @@ mod tests {
     fn test_neg() {
         assert_eq!(-Vec3::new(1.0, -2.0, 3.0), Vec3::new(-1.0, 2.0, -3.0));
     }
-    */
 
     #[test]
     fn test_squared_length() {
         assert_eq!(Vec3::new(1.0, 2.0, 3.0).squared_length(), 14.0 as f64);
     }
 
-    /*
     #[test]
     fn test_length() {
         assert_eq!(
@@ -297,5 +340,5 @@ mod tests {
     fn test_unit_panic() {
         Vec3::new(0.0, 0.0, 0.0).unit();
     }
-    */
+
 }
