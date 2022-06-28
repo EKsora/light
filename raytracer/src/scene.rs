@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+//#![allow(dead_code)]
 // You SHOULD remove above line in your code.
 
 use crate::Vec3;
