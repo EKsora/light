@@ -29,10 +29,14 @@ impl Vec3 {
     }
 
     pub fn unit(&self) -> Self {
-        Self {
-            x: self.x / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
-            y: self.y / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
-            z: self.z / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
+        if ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64) != 0 {
+            Self {
+                x: self.x / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
+                y: self.y / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
+                z: self.z / ( (self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt(),
+            }
+        } else {
+            Self::new(0.0, 0.0, 0.0)
         }
     }
 }
