@@ -162,11 +162,11 @@ impl MulAssign for Vec3 {
 impl Div for Vec3 {
     type Output = Self;
 
-    fn div(self, other: Self) -> Self {
+    fn div(self, other: f64) -> Self {
         Self {
-            x: self.x *(1/other.x),
-            y: self.y *(1/other.y),
-            z: self.z *(1/other.z),
+            x: self.x / other ,
+            y: self.y / other ,
+            z: self.z / other ,
         }
     }
 }
