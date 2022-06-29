@@ -1,4 +1,10 @@
 use std::ops::{Add, AddAssign};
+use std::ops::{Sub, SubAssign};
+use std::ops::{Mul, MulAssign};
+use std::ops::Div;
+use std::ops::EleMul;
+use std::ops::Cross;
+use std::ops::Neg;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Vec3 {
