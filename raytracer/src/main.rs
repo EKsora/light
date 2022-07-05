@@ -1,10 +1,13 @@
+//#![allow(clippy::float_cmp)]
+//#![feature(box_syntax)]
 /*
-#![allow(clippy::float_cmp)]
-#![feature(box_syntax)]
-
 mod material;
 mod scene;
-
+*/
+mod vec3;
+pub use vec3::Vec3;
+//use crate::vec3::Vec3;
+/*
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::ProgressBar;
 use rusttype::Font;
@@ -12,11 +15,17 @@ use scene::example_scene;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use threadpool::ThreadPool;
+const AUTHOR: &str = "EKsora";
 */
-//const AUTHOR: &str = "EKsora";
-mod vec3;
-//mod color;
+type Point3=Vec3;
+type Color=Vec3;
 
+fn write_color(pixel_color:Vec3) {
+    let ir =( 255.999 * pixel_color.x) as u32;
+    let ig =( 255.999 * pixel_color.y) as u32;
+    let ib =( 255.999 * pixel_color.z) as u32;
+    print!("{} {} {}\n", ir, ig, ib);
+}
 /*
 pub struct World {
     pub height: u32,
@@ -66,8 +75,8 @@ fn render_text(image: &mut RgbImage, msg: &str) {
         msg,
     );
 }
-*/
 
+*/
 fn main() {
     /*
     // get environment variable CI, which is true for GitHub Action
@@ -137,7 +146,10 @@ fn main() {
     // render commit ID and author name on image
     let msg = get_text();
     println!("Extra Info: {}", msg);
-    */
+
+    render_text(&mut result, msg.as_str());
+    result.save("output/test.png").unwrap();
+*/
     let image_width = 256;
     let image_height = 256;
     print!("P3\n{} {}\n255\n", image_width, image_height);
@@ -145,7 +157,7 @@ fn main() {
     let mut i=0;
     while j>=0{
         while i<image_width{
-            let mut r = i as f64;
+            /*let mut r = i as f64;
             r = r/(image_width-1)as f64;
             let mut g = j as f64; 
             g = g/(image_height-1)as f64;
@@ -155,12 +167,15 @@ fn main() {
             let ib =( 255.999 * b) as u32;
             i+=1;
             print!("{} {} {}\n", ir, ig, ib);
+            */
+            let pixel_color=Vec3{
+                x:(i as f64)/((image_width-1) as f64), 
+                y:(j as f64)/((image_height-1) as f64),
+                z:0.25,
+            };
+            write_color(pixel_color);
         }
         j-=1;i=0;
     }
 
-
-/*    render_text(&mut result, msg.as_str());
-
-    result.save("output/test.png").unwrap();*/
 }
