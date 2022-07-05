@@ -4,7 +4,6 @@
 
 mod material;
 mod scene;
-mod vec3;
 
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::ProgressBar;
@@ -13,9 +12,10 @@ use scene::example_scene;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use threadpool::ThreadPool;
-pub use vec3::Vec3;
 */
 //const AUTHOR: &str = "EKsora";
+mod vec3;
+//mod color;
 
 /*
 pub struct World {
