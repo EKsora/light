@@ -1,3 +1,4 @@
+/*
 #![allow(clippy::float_cmp)]
 #![feature(box_syntax)]
 
@@ -13,9 +14,10 @@ use std::sync::mpsc::channel;
 use std::sync::Arc;
 use threadpool::ThreadPool;
 pub use vec3::Vec3;
+*/
+//const AUTHOR: &str = "EKsora";
 
-const AUTHOR: &str = "EKsora";
-
+/*
 pub struct World {
     pub height: u32,
 }
@@ -64,8 +66,10 @@ fn render_text(image: &mut RgbImage, msg: &str) {
         msg,
     );
 }
+*/
 
 fn main() {
+    /*
     // get environment variable CI, which is true for GitHub Action
     let is_ci = is_ci();
 
@@ -98,13 +102,13 @@ fn main() {
             let row_begin = height as usize * i / n_jobs;
             let row_end = height as usize * (i + 1) / n_jobs;
             let render_height = row_end - row_begin;
-            let mut img: RgbImage = ImageBuffer::new(width, render_height as u32);
+            let mut img: RgbImage = ImageBuffer::new(width, render_height );
             for x in 0..width {
                 // img_y is the row in partial rendered image
                 // y is real position in final image
                 for (img_y, y) in (row_begin..row_end).enumerate() {
-                    let y = y as u32;
-                    let pixel = img.get_pixel_mut(x, img_y as u32);
+                    let y = y ;
+                    let pixel = img.get_pixel_mut(x, img_y );
                     let color = world_ptr.color(x, y);
                     *pixel = Rgb([color, color, color]);
                 }
@@ -121,8 +125,8 @@ fn main() {
         // idx is the corrsponding row in partial-rendered image
         for (idx, row) in rows.enumerate() {
             for col in 0..width {
-                let row = row as u32;
-                let idx = idx as u32;
+                let row = row ;
+                let idx = idx ;
                 *result.get_pixel_mut(col, row) = *data.get_pixel(col, idx);
             }
         }
@@ -133,8 +137,30 @@ fn main() {
     // render commit ID and author name on image
     let msg = get_text();
     println!("Extra Info: {}", msg);
+    */
+    let image_width = 256;
+    let image_height = 256;
+    print!("P3\n{} {}\n255\n", image_width, image_height);
+    let mut j=image_height-1;
+    let mut i=0;
+    while j>=0{
+        while i<image_width{
+            let mut r = i as f64;
+            r = r/(image_width-1)as f64;
+            let mut g = j as f64; 
+            g = g/(image_height-1)as f64;
+            let b = 0.25 as f64 ;
+            let ir =( 255.999 * r) as u32;
+            let ig =( 255.999 * g) as u32;
+            let ib =( 255.999 * b) as u32;
+            i+=1;
+            print!("{} {} {}\n", ir, ig, ib);
+        }
+        j-=1;i=0;
+    }
 
-    render_text(&mut result, msg.as_str());
 
-    result.save("output/test.png").unwrap();
+/*    render_text(&mut result, msg.as_str());
+
+    result.save("output/test.png").unwrap();*/
 }
