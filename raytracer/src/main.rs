@@ -26,6 +26,28 @@ fn write_color(pixel_color:Vec3) {
     let ib =( 255.999 * pixel_color.z) as u32;
     print!("{} {} {}\n", ir, ig, ib);
 }
+
+pub struct Ray{
+    pub orig:Vec3,
+    pub dir:Vec3,
+}
+impl Ray {
+    pub fn origin(&self)->Vec3{
+        Vec3::new(self.orig.x,self.orig.y,self.orig.z)
+    }
+    pub fn direction(&self)->Vec3{
+        Vec3::new(self.dir.x,self.dir.y,self.dir.z)
+    }
+    pub fn at(&self,t:f64)->Vec3{
+        Vec3::new(self.orig.x+t*self.dir.x,self.orig.y+t*self.dir.y,self.orig.z+t*self.dir.z)
+    }
+}
+
+pub fn ray_color(r:&Ray)->Vec3{
+    let unit_direction=Vec3::new(r.direction().unit().x,r.direction().unit().y,r.direction().unit().z);
+    let mut t = 0.5*(unit_direction.y + 1.0);
+    Vec3::new(1.0, 1.0, 1.0)*(1.0-t) + Vec3::new(0.5, 0.7, 1.0)*t
+}
 /*
 pub struct World {
     pub height: u32,
@@ -150,6 +172,7 @@ fn main() {
     render_text(&mut result, msg.as_str());
     result.save("output/test.png").unwrap();
 */
+    let aspect_ratio = 16.0 / 9.0;
     let image_width = 256;
     let image_height = 256;
     print!("P3\n{} {}\n255\n", image_width, image_height);
@@ -157,17 +180,6 @@ fn main() {
     let mut i=0;
     while j>=0{
         while i<image_width{
-            /*let mut r = i as f64;
-            r = r/(image_width-1)as f64;
-            let mut g = j as f64; 
-            g = g/(image_height-1)as f64;
-            let b = 0.25 as f64 ;
-            let ir =( 255.999 * r) as u32;
-            let ig =( 255.999 * g) as u32;
-            let ib =( 255.999 * b) as u32;
-            i+=1;
-            print!("{} {} {}\n", ir, ig, ib);
-            */
             let pixel_color=Vec3{
                 x:(i as f64)/((image_width-1) as f64), 
                 y:(j as f64)/((image_height-1) as f64),
