@@ -59,6 +59,14 @@ impl Vec3 {
             z: self.x * other.y - self.y * other.x,
         }
     }
+    
+    pub fn clone(&self)->Self{
+        Self {
+            x: self.x ,
+            y: self.y ,
+            z: self.z ,
+        }
+    }
 }
 
 impl Add for Vec3 {
