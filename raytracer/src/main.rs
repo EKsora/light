@@ -43,15 +43,6 @@ impl Ray {
     }
 }
 
-pub fn ray_color(r:&Ray)->Vec3{
-    let unit_direction=Vec3{
-        x:r.direction().unit().x,
-        y:r.direction().unit().y,
-        z:r.direction().unit().z,
-    };
-    let t = 0.5*(unit_direction.y + 1.0);
-    Vec3::new(1.0, 1.0, 1.0)*(1.0-t) + Vec3::new(0.5, 0.7, 1.0)*t
-}
 
 pub fn hit_sphere(center:Vec3,radius:f64,r:&Ray) -> bool {
     let oc:Vec3 = r.origin() - center.clone();
@@ -60,6 +51,20 @@ pub fn hit_sphere(center:Vec3,radius:f64,r:&Ray) -> bool {
     let c = oc.clone()*oc.clone() - radius*radius;
     let discriminant = b*b - 4.0*a*c;
     discriminant > 0.0
+}
+
+pub fn ray_color(r:&Ray)->Vec3{
+    if hit_sphere(Vec3::new(0.0,0.0,-1.0), 0.5, r){
+        Vec3::new(1.0,0.0,0.0)
+    }else{
+    let unit_direction=Vec3{
+        x:r.direction().unit().x,
+        y:r.direction().unit().y,
+        z:r.direction().unit().z,
+    };
+    let t = 0.5*(unit_direction.y + 1.0);
+    Vec3::new(1.0, 1.0, 1.0)*(1.0-t) + Vec3::new(0.5, 0.7, 1.0)*t
+    }
 }
 
 /*
