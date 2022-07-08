@@ -1,5 +1,7 @@
 mod vec3;
 pub use vec3::Vec3;
+mod ray;
+pub use ray::Ray;
 type Point3=Vec3;
 type Color=Vec3;
 
@@ -10,33 +12,16 @@ fn write_color(pixel_color:Vec3) {
     print!("{} {} {}\n", ir, ig, ib);
 }
 
-pub struct Ray{
-    pub orig:Vec3,
-    pub dir:Vec3,
-}
-impl Ray {
-    pub fn origin(&self)->Vec3{
-        Vec3::new(self.orig.x,self.orig.y,self.orig.z)
-    }
-    pub fn direction(&self)->Vec3{
-        Vec3::new(self.dir.x,self.dir.y,self.dir.z)
-    }
-    pub fn at(&self,t:f64)->Vec3{
-        Vec3::new(self.orig.x+t*self.dir.x,self.orig.y+t*self.dir.y,self.orig.z+t*self.dir.z)
-    }
-}
-
-
 pub fn hit_sphere(center:Vec3,radius:f64,r:&Ray) -> f64 {
     let oc:Vec3 = r.origin() - center.clone();
-    let a = r.direction()*r.direction();
-    let b =  oc.clone()*r.direction()*2.0;
-    let c = oc.clone()*oc.clone() - radius*radius;
-    let discriminant = b*b - 4.0*a*c;
+    let a = r.direction().squared_length();
+    let half_b =  oc.clone()*r.direction();
+    let c = oc.clone().squared_length() - radius*radius;
+    let discriminant = half_b*half_b - a*c;
     if discriminant < 0.0 {
         -1.0
     }else{
-        (-b - discriminant.sqrt())  / (2.0*a)
+        (-half_b - discriminant.sqrt())  / a
     }
 }
 
