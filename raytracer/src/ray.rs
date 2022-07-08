@@ -22,4 +22,7 @@ impl Ray {
             dir: self.dir.clone() ,
         }
     }
+    pub fn new(orig:Vec3,dir:Vec3)->Self{
+        Self {orig ,dir}
+    }
 }

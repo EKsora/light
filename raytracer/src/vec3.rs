@@ -3,6 +3,7 @@ use std::ops::{Sub, SubAssign};
 use std::ops::{Mul, MulAssign};
 use std::ops::{Div};
 use std::ops::{Neg};
+extern crate rand;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Vec3 {
@@ -65,6 +66,45 @@ impl Vec3 {
             x: self.x ,
             y: self.y ,
             z: self.z ,
+        }
+    }
+    
+    pub fn random() -> Self {
+        Self::new(
+            rand::random::<f64>(),
+            rand::random::<f64>(),
+            rand::random::<f64>(),
+        )
+    }
+
+    pub fn random_in_range(min: f64, max: f64) -> Self {
+        Self::new(
+            min + (max - min) * rand::random::<f64>(),
+            min + (max - min) * rand::random::<f64>(),
+            min + (max - min) * rand::random::<f64>(),
+        )
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Self::random_in_range(-1.0, 1.0);
+            if p.squared_length() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
+
+    pub fn random_unit_vector() -> Self {
+        Self::unit(&Self::random_in_unit_sphere())
+    }
+    
+    pub fn random_in_hemisphere(normal: &Vec3) -> Self {
+        let in_unit_sphere = Self::random_in_unit_sphere();
+        if in_unit_sphere * *normal > 0.0 {
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
         }
     }
 }
