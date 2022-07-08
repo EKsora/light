@@ -98,13 +98,13 @@ impl Vec3 {
     pub fn random_unit_vector() -> Self {
         Self::unit(&Self::random_in_unit_sphere())
     }
-    
+
     pub fn random_in_hemisphere(normal: &Vec3) -> Self {
         let in_unit_sphere = Self::random_in_unit_sphere();
-        if in_unit_sphere * *normal > 0.0 {
-            in_unit_sphere
+        if in_unit_sphere.clone() * normal.clone() > 0.0 {
+            in_unit_sphere.clone()
         } else {
-            -in_unit_sphere
+            -in_unit_sphere.clone()
         }
     }
 }
