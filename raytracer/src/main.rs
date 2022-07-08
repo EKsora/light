@@ -1,7 +1,10 @@
+extern crate rand;
 mod vec3;
 pub use vec3::Vec3;
 mod ray;
 pub use ray::Ray;
+mod camera;
+pub use camera::Camera;
 mod hit;
 pub use hit::*;
 mod sphere;
@@ -13,11 +16,33 @@ use std::f64::INFINITY;
 pub fn degrees_to_radians(degrees: f64) {
     degrees * PI / 180.0;
 }
+pub fn random_double() -> f64 {
+    rand::random::<f64>()
+}
+pub fn random_double_in_range(min: f64, max: f64) -> f64 {
+    min + (max - min) * random_double()
+}
+pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
+    if x < min {
+        min
+    } else if x > max {
+        max
+    } else {
+        x
+    }
+}
 
-pub fn write_color(pixel_color:Vec3) {
-    let ir =( 255.999 * pixel_color.x) as u32;
-    let ig =( 255.999 * pixel_color.y) as u32;
-    let ib =( 255.999 * pixel_color.z) as u32;
+pub fn write_color(pixel_color:Vec3,samples_per_pixel: u32) {
+    let mut r = pixel_color.x;
+    let mut g = pixel_color.y;
+    let mut b = pixel_color.z;
+    let scale = 1.0 / samples_per_pixel as f64;
+    r *= scale;
+    g *= scale;
+    b *= scale;
+    let ir =( (256 as f64) * clamp(r, 0.0, 0.999)) as u32;
+    let ig =( (256 as f64)* clamp(g, 0.0, 0.999)) as u32;
+    let ib =( (256 as f64)* clamp(b, 0.0, 0.999)) as u32;
     print!("{} {} {}\n", ir, ig, ib);
 }
 
@@ -53,11 +78,12 @@ fn main() {
     const aspect_ratio:f64 = 16.0 / 9.0;
     const image_width:u32 = 400;
     const image_height:u32 =(image_width as f64/ aspect_ratio)as u32;
+    const samples_per_pixel:u32 = 100;
 
     let mut world = hit::HitList::new();
     world.add(Box::new(sphere::Sphere::new(Vec3::new(0.0, 0.0, -1.0),0.5,)));
     world.add(Box::new(sphere::Sphere::new(Vec3::new(0.0, -100.5, -1.0),100.0,)));
-
+    /*
     let viewport_height:f64 = 2.0;
     let viewport_width:f64 = aspect_ratio * viewport_height;
     let focal_length:f64 = 1.0;
@@ -66,9 +92,12 @@ fn main() {
     let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
     let vertical = Vec3::new(0.0, viewport_height, 0.0);
     let lower_left_corner = origin.clone() - horizontal.clone()/2.0 - vertical.clone()/2.0 - Vec3::new(0.0, 0.0, focal_length);
+    */
+    let cam=Camera::new(); 
     print!("P3\n{} {}\n255\n", image_width, image_height);
     for j in (0..image_height).rev(){
         for i in (0..image_width){
+            /*
             let u:f64=i as f64 / (image_width-1)as f64;
             let v:f64=j as f64 / (image_height-1)as f64;
             let r=Ray{
@@ -77,6 +106,15 @@ fn main() {
             };
             let pixel_color=ray_color(&r,&world);
             write_color(pixel_color);
+            */
+            let mut pixel_color = Vec3::zero();
+            for _s in 0..samples_per_pixel {
+                let u = (i as f64 + random_double()) / (image_width as f64);
+                let v = (j as f64 + random_double()) / (image_height as f64);
+                let r = cam.get_ray(u, v);
+                pixel_color += ray_color(&r, &world);
+            }
+            write_color(pixel_color, samples_per_pixel);
         }
     }
 }
