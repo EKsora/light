@@ -106,7 +106,14 @@ fn main() {
     world.add(Box::new(sphere::Sphere::new(Vec3::new(-1.0, 0.0, -1.0),0.5,material_left.clone())));
     world.add(Box::new(sphere::Sphere::new(Vec3::new(-1.0, 0.0, -1.0),-0.45,material_left.clone())));
     world.add(Box::new(sphere::Sphere::new(Vec3::new(1.0, 0.0, -1.0),0.5,material_right.clone())));
-    let cam = Camera::new(Vec3::new(-2.0, 2.0, 1.0),Vec3::new(0.0, 0.0, -1.0),Vec3::new(0.0, 1.0, 0.0),90.0,aspect_ratio);
+
+    let lookfrom=Vec3::new(3.0,3.0,2.0);
+    let lookat=Vec3::new(0.0,0.0,-1.0);
+    let vup=Vec3::new(0.0,1.0,0.0);
+    let dist_to_focus = (lookfrom.clone()-lookat.clone()).length();
+    let aperture = 2.0;
+    let cam = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus);
+
     print!("P3\n{} {}\n255\n", image_width, image_height);
     for j in (0..image_height).rev(){
         for i in (0..image_width){

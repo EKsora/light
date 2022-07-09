@@ -108,6 +108,16 @@ impl Vec3 {
         }
     }
 
+    pub fn random_in_unit_disk() -> Self {
+        loop {
+            let p = Vec3::new(-1.0+(1.0+1.0)*rand::random::<f64>(),-1.0+(1.0+1.0)*rand::random::<f64>(),0.0);
+            if p.squared_length() >= 1.0{
+                continue;
+            }
+            return p;
+        }
+    }
+
     pub fn near_zero(&self) -> bool {   
         self.x.abs() < 1e-8 && self.y.abs() < 1e-8 && self.z.abs() < 1e-8
     }
