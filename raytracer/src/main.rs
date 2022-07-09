@@ -42,7 +42,7 @@ pub fn write_color(pixel_color:Vec3,samples_per_pixel: u32) {
     r = (scale*r).sqrt();
     g = (scale*g).sqrt();
     b = (scale*b).sqrt();
-    let ir =( (256 as f64) * clamp(r, 0.0, 0.999)) as u32;
+    let ir =( (256 as f64)* clamp(r, 0.0, 0.999)) as u32;
     let ig =( (256 as f64)* clamp(g, 0.0, 0.999)) as u32;
     let ib =( (256 as f64)* clamp(b, 0.0, 0.999)) as u32;
     print!("{} {} {}\n", ir, ig, ib);
@@ -66,7 +66,7 @@ pub fn ray_color(r:&Ray,world:&hit::HitList,depth:u32)->Vec3{
         return Vec3::new(0.0,0.0,0.0);
     }
     let mut rec = HitRecord::new(Vec3::zero(),Vec3::zero(),0.0,false);
-    if world.hit((*r).clone(),0.0,INFINITY,&mut rec){
+    if world.hit((*r).clone(),0.00001,INFINITY,&mut rec){
         let target = rec.clone().p + Vec3::random_in_hemisphere(&rec.clone().normal);
         return ray_color(&Ray::new(rec.clone().p, target - rec.clone().p),world,depth - 1) * 0.5;
     }else{
