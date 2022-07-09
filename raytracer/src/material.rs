@@ -1,6 +1,12 @@
+extern crate rand;
 use crate::hit::HitRecord;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
+
+pub fn fmin(a: f64, b: f64) -> f64 {
+    if a>b {b} else {a}
+}
+
 pub trait Material {
     fn scatter(&self,r_in: &Ray,rec: &HitRecord,attenuation: &mut Vec3,scattered: &mut Ray) -> bool;
 }
@@ -52,6 +58,11 @@ impl Dielectric {
     pub fn new(ref_idx: f64) -> Self {
         Self { ref_idx }
     }
+    fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
+        let mut r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
+        r0 = r0 * r0;
+        r0+(1.0 - r0)*(1.0 - cosine).powi(5)
+    }
 }
 impl Material for Dielectric {
     fn scatter(
@@ -68,8 +79,16 @@ impl Material for Dielectric {
             self.ref_idx
         };
         let unit_direction = Vec3::unit(&r_in.direction());
-        let refracted = Vec3::refract(&unit_direction, &rec.normal, refraction_ratio);
-        *scattered = Ray::new(rec.p.clone(), refracted);
+        let cos_theta = fmin(-unit_direction.clone() * rec.normal.clone(), 1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
+        let direction =
+            if cannot_refract || Self::reflectance(cos_theta, refraction_ratio) > rand::random::<f64>() {
+                Vec3::reflect(&unit_direction, &rec.normal)
+            } else {
+                Vec3::refract(&unit_direction, &rec.normal, refraction_ratio)
+            };
+        *scattered = Ray::new(rec.p.clone(), direction);
         true
     }
 }
