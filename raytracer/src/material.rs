@@ -1,53 +1,63 @@
-//#![allow(dead_code)]
-//#![allow(clippy::boxed_local)]
-// You SHOULD remove above line in your code.
-
-// This file shows necessary examples of how to complete Track 4 and 5.
-
-pub trait Texture {}
-pub trait Material {}
-
-/// `Lambertian` now takes a generic parameter `T`.
-/// This reduces the overhead of using `Box<dyn Texture>`
-#[derive(Clone)]
-pub struct Lambertian<T: Texture> {
-    pub albedo: T,
+use crate::hit::HitRecord;
+use crate::ray::Ray;
+use crate::vec3::Vec3;
+pub trait Material {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool;
 }
 
-impl<T: Texture> Lambertian<T> {
-    pub fn new(albedo: T) -> Self {
+pub struct Lambertian {
+    albedo: Vec3,
+}
+impl Lambertian {
+    pub fn new(albedo: Vec3) -> Self {
         Self { albedo }
     }
 }
-
-impl<T: Texture> Material for Lambertian<T> {}
-
-pub trait Hitable {}
-pub struct AABB;
-
-/// This BVHNode should be constructed statically.
-/// You should use procedural macro to generate code like this:
-/// ```
-/// let bvh = BVHNode::construct(
-///     box BVHNode::construct(
-///         box Sphere { .. }
-///         box Sphere { .. }
-///     ),
-///     box BVHNode::construct(
-///         box Sphere { .. }
-///         box Sphere { .. }
-///     )
-/// )
-/// ```
-/// And you can put that `bvh` into your `HittableList`.
-pub struct BVHNode<L: Hitable, R: Hitable> {
-    left: Box<L>,
-    right: Box<R>,
-    bounding_box: AABB,
+impl Material for Lambertian {
+    fn scatter(
+        &self,
+        // unused variable (if this is intentional, prefix it with an underscore) according to the warning
+        _r_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        let mut scatter_direction = rec.normal + Vec3::random_unit_vector();
+        // Catch degenerate scatter direction
+        if scatter_direction.near_zero() {
+            scatter_direction = rec.normal;
+        }
+        *scattered = Ray::new(rec.p, scatter_direction);
+        *attenuation = self.albedo;
+        true
+    }
 }
-
-impl<L: Hitable, R: Hitable> BVHNode<L, R> {
-    pub fn construct(_left: Box<L>, _right: Box<R>) -> Self {
-        unimplemented!()
+// Metal material with reflectance function
+pub struct Metal {
+    albedo: Vec3,
+}
+impl Metal {
+    pub fn new(albedo: Vec3) -> Self {
+        Self { albedo }
+    }
+}
+impl Material for Metal {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        let reflected = Vec3::reflect(&Vec3::unit(&r_in.direction()), &rec.normal);
+        *scattered = Ray::new(rec.p, reflected);
+        *attenuation = self.albedo;
+        scattered.direction() * rec.normal > 0.0
     }
 }

@@ -1,19 +1,23 @@
 use crate::ray::Ray;
 use crate::vec3::Vec3;
-#[derive(Clone, Debug, PartialEq)]
+use crate::material::Material;
+use std::sync::Arc;
+#[derive(Clone, PartialEq)]
 pub struct HitRecord {
     pub p: Vec3,      
     pub normal: Vec3, 
+    pub material: Arc<dyn Material>, 
     pub t: f64,       
     pub front_face: bool,
 }
 impl HitRecord {
-    pub fn new(p: Vec3, normal: Vec3, t: f64, front_face: bool) -> Self {
+    pub fn new(material: Arc<dyn Material>) -> Self {
         Self {
-            p,
-            normal,
-            t,
-            front_face,
+            p: Vec3::zero(),
+            normal: Vec3::zero(),
+            t: 0.0,
+            front_face: true,
+            material:material,
         }
     }
     pub fn set_face_normal(&mut self, r: Ray, outward_normal: Vec3) {
@@ -28,6 +32,7 @@ impl HitRecord {
         Self {
             p:self.p.clone(),
             normal:self.normal.clone(),
+            material:self.material,
             t:self.t,
             front_face:self.front_face,
         }
@@ -52,10 +57,10 @@ impl HitList {
 }
 impl Hittable for HitList {
     fn hit(&self, ray: Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
-        let mut temp_rec = HitRecord::new(Vec3::zero(),Vec3::zero(),0.0,false);
+        let mut temp_rec: HitRecord = rec.clone();
         let mut hit_anything = false;
         let mut closest_so_far = t_max;
-        for object in &self.list {
+        for object in self.list.iter() {
             if object.hit(ray.clone(), t_min, closest_so_far, &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.clone().t;

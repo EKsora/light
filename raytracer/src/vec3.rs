@@ -107,6 +107,14 @@ impl Vec3 {
             -in_unit_sphere.clone()
         }
     }
+
+    pub fn near_zero(&self) -> bool {   
+        self.x.abs() < 1e-8 && self.y.abs() < 1e-8 && self.z.abs() < 1e-8
+    }
+
+    pub fn reflect(v: &Vec3, n: &Vec3) -> Self {
+        *v - *n * 2.0 * (*v * *n)
+    }
 }
 
 impl Add for Vec3 {

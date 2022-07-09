@@ -5,11 +5,14 @@ mod ray;
 pub use ray::Ray;
 mod camera;
 pub use camera::Camera;
+mod material;
+pub use material::*;
 mod hit;
 pub use hit::*;
 mod sphere;
 type Point3=Vec3;
 type Color=Vec3;
+use std::sync::Arc;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
 
@@ -65,10 +68,14 @@ pub fn ray_color(r:&Ray,world:&hit::HitList,depth:u32)->Vec3{
     if depth<=0{
         return Vec3::new(0.0,0.0,0.0);
     }
-    let mut rec = HitRecord::new(Vec3::zero(),Vec3::zero(),0.0,false);
+    let mut rec = HitRecord::new(Arc::new(Lambertian::new(Vec3::new(0.0,0.0,0.0))));
     if world.hit((*r).clone(),0.00001,INFINITY,&mut rec){
-        let target = rec.clone().p + Vec3::random_in_hemisphere(&rec.clone().normal);
-        return ray_color(&Ray::new(rec.clone().p, target - rec.clone().p),world,depth - 1) * 0.5;
+        let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0));
+        let mut attenuation = Vec3::new(0.0,0.0,0.0);
+        if rec.material.scatter(&r, &rec, &mut attenuation, &mut scattered){
+            return Vec3::elemul(attenuation, ray_color(&scattered, world, depth - 1));
+        }
+        return Vec3::new(0.0,0.0,0.0);
     }else{
     let unit_direction=Vec3{
         x:r.direction().unit().x,
@@ -87,8 +94,19 @@ fn main() {
     const samples_per_pixel:u32 = 100;
     const max_depth:u32 = 50;
     let mut world = hit::HitList::new();
-    world.add(Box::new(sphere::Sphere::new(Vec3::new(0.0, 0.0, -1.0),0.5,)));
-    world.add(Box::new(sphere::Sphere::new(Vec3::new(0.0, -100.5, -1.0),100.0,)));
+    let material_ground = Lambertian::new(Vec3::new(0.8, 0.8, 0.0));
+    let material_center = Lambertian::new(Vec3::new(0.7, 0.3, 0.3));
+    let material_left = Metal::new(Vec3::new(0.8, 0.8, 0.8));
+    let material_right = Metal::new(Vec3::new(0.8, 0.6, 0.2));
+    world.add(Box::new(sphere::Sphere::new(
+        Vec3::new(0.0, -100.5, -1.0),
+        100.0,
+        Arc::new(material_ground),
+    )));
+
+    world.add(Box::new(sphere::Sphere::new(Vec3::new(0.0, 0.0, -1.0),0.5,Arc::new(material_center))));
+    world.add(Box::new(sphere::Sphere::new(Vec3::new(-1.0, 0.0, -1.0),0.5,Arc::new(material_left))));
+    world.add(Box::new(sphere::Sphere::new(Vec3::new(1.0, 0.0, -1.0),0.5,Arc::new(material_right))));
     let cam=Camera::new(); 
     print!("P3\n{} {}\n255\n", image_width, image_height);
     for j in (0..image_height).rev(){
