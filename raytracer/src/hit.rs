@@ -1,17 +1,17 @@
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 use crate::material::Material;
-use std::sync::Arc;
-#[derive(Clone, PartialEq)]
+use std::rc::Rc;
+#[derive(Clone)]
 pub struct HitRecord {
     pub p: Vec3,      
     pub normal: Vec3, 
-    pub material: Arc<dyn Material>, 
+    pub material: Rc<dyn Material>, 
     pub t: f64,       
     pub front_face: bool,
 }
 impl HitRecord {
-    pub fn new(material: Arc<dyn Material>) -> Self {
+    pub fn new(material: Rc<dyn Material>) -> Self {
         Self {
             p: Vec3::zero(),
             normal: Vec3::zero(),
@@ -32,7 +32,7 @@ impl HitRecord {
         Self {
             p:self.p.clone(),
             normal:self.normal.clone(),
-            material:self.material,
+            material:self.material.clone(),
             t:self.t,
             front_face:self.front_face,
         }

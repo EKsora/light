@@ -12,7 +12,7 @@ pub use hit::*;
 mod sphere;
 type Point3=Vec3;
 type Color=Vec3;
-use std::sync::Arc;
+use std::rc::Rc;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
 
@@ -68,7 +68,7 @@ pub fn ray_color(r:&Ray,world:&hit::HitList,depth:u32)->Vec3{
     if depth<=0{
         return Vec3::new(0.0,0.0,0.0);
     }
-    let mut rec = HitRecord::new(Arc::new(Lambertian::new(Vec3::new(0.0,0.0,0.0))));
+    let mut rec = HitRecord::new(Rc::new(Lambertian::new(Vec3::new(0.0,0.0,0.0))));
     if world.hit((*r).clone(),0.00001,INFINITY,&mut rec){
         let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0));
         let mut attenuation = Vec3::new(0.0,0.0,0.0);
@@ -101,12 +101,12 @@ fn main() {
     world.add(Box::new(sphere::Sphere::new(
         Vec3::new(0.0, -100.5, -1.0),
         100.0,
-        Arc::new(material_ground),
+        Rc::new(material_ground),
     )));
 
-    world.add(Box::new(sphere::Sphere::new(Vec3::new(0.0, 0.0, -1.0),0.5,Arc::new(material_center))));
-    world.add(Box::new(sphere::Sphere::new(Vec3::new(-1.0, 0.0, -1.0),0.5,Arc::new(material_left))));
-    world.add(Box::new(sphere::Sphere::new(Vec3::new(1.0, 0.0, -1.0),0.5,Arc::new(material_right))));
+    world.add(Box::new(sphere::Sphere::new(Vec3::new(0.0, 0.0, -1.0),0.5,Rc::new(material_center))));
+    world.add(Box::new(sphere::Sphere::new(Vec3::new(-1.0, 0.0, -1.0),0.5,Rc::new(material_left))));
+    world.add(Box::new(sphere::Sphere::new(Vec3::new(1.0, 0.0, -1.0),0.5,Rc::new(material_right))));
     let cam=Camera::new(); 
     print!("P3\n{} {}\n255\n", image_width, image_height);
     for j in (0..image_height).rev(){

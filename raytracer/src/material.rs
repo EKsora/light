@@ -2,13 +2,7 @@ use crate::hit::HitRecord;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 pub trait Material {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Vec3,
-        scattered: &mut Ray,
-    ) -> bool;
+    fn scatter(&self,r_in: &Ray,rec: &HitRecord,attenuation: &mut Vec3,scattered: &mut Ray) -> bool;
 }
 
 pub struct Lambertian {
@@ -20,25 +14,16 @@ impl Lambertian {
     }
 }
 impl Material for Lambertian {
-    fn scatter(
-        &self,
-        // unused variable (if this is intentional, prefix it with an underscore) according to the warning
-        _r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Vec3,
-        scattered: &mut Ray,
-    ) -> bool {
-        let mut scatter_direction = rec.normal + Vec3::random_unit_vector();
-        // Catch degenerate scatter direction
+    fn scatter(&self,_r_in: &Ray,rec: &HitRecord,attenuation: &mut Vec3,scattered: &mut Ray) -> bool {
+        let mut scatter_direction = rec.normal.clone() + Vec3::random_unit_vector();
         if scatter_direction.near_zero() {
-            scatter_direction = rec.normal;
+            scatter_direction = rec.normal.clone();
         }
-        *scattered = Ray::new(rec.p, scatter_direction);
-        *attenuation = self.albedo;
+        *scattered = Ray::new(rec.p.clone(), scatter_direction);
+        *attenuation = self.albedo.clone();
         true
     }
 }
-// Metal material with reflectance function
 pub struct Metal {
     albedo: Vec3,
 }
@@ -48,16 +33,10 @@ impl Metal {
     }
 }
 impl Material for Metal {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Vec3,
-        scattered: &mut Ray,
-    ) -> bool {
-        let reflected = Vec3::reflect(&Vec3::unit(&r_in.direction()), &rec.normal);
-        *scattered = Ray::new(rec.p, reflected);
-        *attenuation = self.albedo;
-        scattered.direction() * rec.normal > 0.0
+    fn scatter(&self,r_in: &Ray,rec: &HitRecord,attenuation: &mut Vec3,scattered: &mut Ray) -> bool {
+        let reflected = Vec3::reflect(&Vec3::unit(&r_in.direction()), &rec.normal.clone());
+        *scattered = Ray::new(rec.p.clone(), reflected);
+        *attenuation = self.albedo.clone();
+        scattered.direction() * rec.normal.clone() > 0.0
     }
 }

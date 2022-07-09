@@ -113,7 +113,7 @@ impl Vec3 {
     }
 
     pub fn reflect(v: &Vec3, n: &Vec3) -> Self {
-        *v - *n * 2.0 * (*v * *n)
+        v.clone() - n.clone() * 2.0 * (v.clone() * n.clone())
     }
 }
 
