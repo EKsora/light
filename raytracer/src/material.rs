@@ -24,6 +24,7 @@ impl Material for Lambertian {
         true
     }
 }
+
 pub struct Metal {
     albedo: Vec3,
     fuzz: f64,
@@ -41,5 +42,34 @@ impl Material for Metal {
         *scattered = Ray::new(rec.p.clone(), reflected+ Vec3::random_in_unit_sphere() * self.fuzz);
         *attenuation = self.albedo.clone();
         scattered.direction() * rec.normal.clone() > 0.0
+    }
+}
+
+pub struct Dielectric {
+    ref_idx: f64,
+}
+impl Dielectric {
+    pub fn new(ref_idx: f64) -> Self {
+        Self { ref_idx }
+    }
+}
+impl Material for Dielectric {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        *attenuation = Vec3::new(1.0, 1.0, 1.0);
+        let refraction_ratio = if rec.front_face {
+            1.0 / self.ref_idx
+        } else {
+            self.ref_idx
+        };
+        let unit_direction = Vec3::unit(&r_in.direction());
+        let refracted = Vec3::refract(&unit_direction, &rec.normal, refraction_ratio);
+        *scattered = Ray::new(rec.p.clone(), refracted);
+        true
     }
 }

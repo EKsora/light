@@ -115,6 +115,13 @@ impl Vec3 {
     pub fn reflect(v: &Vec3, n: &Vec3) -> Self {
         v.clone() - n.clone() * 2.0 * (v.clone() * n.clone())
     }
+
+    pub fn refract(r_in: &Vec3, n: &Vec3, eta: f64) -> Self {
+        let cos_theta = -(r_in.clone() * n.clone());
+        let r_out_perpendicular = (r_in.clone() + n.clone() * cos_theta) * eta;
+        let r_out_parallel = -n.clone() * (1.0 - r_out_perpendicular.clone().squared_length()).abs().sqrt();
+        r_out_perpendicular.clone() + r_out_parallel.clone()
+    }
 }
 
 impl Add for Vec3 {
