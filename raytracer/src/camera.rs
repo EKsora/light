@@ -13,17 +13,19 @@ pub struct Camera {
     vertical: Vec3,
 }
 impl Camera {
-    pub fn new(vfov: f64, aspect_ratio: f64) -> Self {
+    pub fn new(look_from: Vec3, look_at: Vec3, vup: Vec3, vfov: f64, aspect_ratio: f64) -> Self {
         let theta: f64 = vfov*PI/180.0;
         let h: f64 = (theta / 2.0).tan();
         let viewport_height = 2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
-        let focal_length = 1.0;
+        let w = Vec3::unit(&(look_from.clone() - look_at.clone()));
+        let x = Vec3::unit(&Vec3::cross(vup.clone(), w.clone()));
+        let y = Vec3::cross(w.clone(), x.clone());
         Self {
-            origin: Vec3::zero(),
-            horizontal: Vec3::new(viewport_width, 0.0, 0.0),
-            vertical: Vec3::new(0.0, viewport_height, 0.0),
-            lower_left_corner: Vec3::new(-viewport_width / 2.0,-viewport_height / 2.0,-focal_length),
+            origin: look_from.clone(),
+            horizontal: x.clone() * viewport_width,
+            vertical: y.clone() * viewport_height,
+            lower_left_corner: look_from - x.clone() * viewport_width / 2.0 - y.clone() * viewport_height / 2.0 - w,
         }
     }
     pub fn get_ray(&self, u: f64, v: f64) -> Ray {
