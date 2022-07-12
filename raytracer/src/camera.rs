@@ -16,6 +16,11 @@ pub fn random_in_unit_disk() -> Vec3 {
     }
 }
 
+pub fn random_double_in_range(min: f64, max: f64) -> f64 {
+    min + (max - min) * rand::random::<f64>()
+}
+
+
 pub struct Camera {
     origin: Vec3,
     lower_left_corner: Vec3,
@@ -25,9 +30,11 @@ pub struct Camera {
     v:Vec3,
     w:Vec3,
     lens_radius:f64,
+    time0: f64,
+    time1: f64,
 }
 impl Camera {
-    pub fn new(look_from: Vec3, look_at: Vec3, vup: Vec3, vfov: f64, aspect_ratio: f64,aperture:f64,focus_dist:f64) -> Self {
+    pub fn new(look_from: Vec3, look_at: Vec3, vup: Vec3, vfov: f64, aspect_ratio: f64,aperture:f64,focus_dist:f64,itime0: f64,itime1: f64) -> Self {
         let theta: f64 = vfov*PI/180.0;
         let h: f64 = (theta / 2.0).tan();
         let viewport_height = 2.0 * h;
@@ -47,6 +54,8 @@ impl Camera {
             vertical: iv.clone() * viewport_height*focus_dist,
             lower_left_corner: iorigin - ihorizontal/2.0 - ivertical/2.0 - iw.clone()*focus_dist,
             lens_radius : aperture / 2.0,
+            time0: itime0,
+            time1: itime1,
         }
     }
 
@@ -56,6 +65,7 @@ impl Camera {
         Ray {
             orig: self.origin.clone()+offset.clone(),
             dir: self.lower_left_corner.clone() + self.horizontal.clone() * s + self.vertical.clone() * t - self.origin.clone()-offset.clone(),
+            time: random_double_in_range(self.time0, self.time1),
         }
     }
 }

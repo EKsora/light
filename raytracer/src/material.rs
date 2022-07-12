@@ -20,12 +20,12 @@ impl Lambertian {
     }
 }
 impl Material for Lambertian {
-    fn scatter(&self,_r_in: &Ray,rec: &HitRecord,attenuation: &mut Vec3,scattered: &mut Ray) -> bool {
+    fn scatter(&self,r_in: &Ray,rec: &HitRecord,attenuation: &mut Vec3,scattered: &mut Ray) -> bool {
         let mut scatter_direction = rec.normal.clone() + Vec3::random_unit_vector();
         if scatter_direction.near_zero() {
             scatter_direction = rec.normal.clone();
         }
-        *scattered = Ray::new(rec.p.clone(), scatter_direction);
+        *scattered = Ray::new(rec.p.clone(), scatter_direction, r_in.time());
         *attenuation = self.albedo.clone();
         true
     }
@@ -45,7 +45,7 @@ impl Metal {
 impl Material for Metal {
     fn scatter(&self,r_in: &Ray,rec: &HitRecord,attenuation: &mut Vec3,scattered: &mut Ray) -> bool {
         let reflected = Vec3::reflect(&Vec3::unit(&r_in.direction()), &rec.normal.clone());
-        *scattered = Ray::new(rec.p.clone(), reflected+ Vec3::random_in_unit_sphere() * self.fuzz);
+        *scattered = Ray::new(rec.p.clone(), reflected+ Vec3::random_in_unit_sphere() * self.fuzz, r_in.time());
         *attenuation = self.albedo.clone();
         scattered.direction() * rec.normal.clone() > 0.0
     }
@@ -88,7 +88,7 @@ impl Material for Dielectric {
             } else {
                 Vec3::refract(&unit_direction, &rec.normal, refraction_ratio)
             };
-        *scattered = Ray::new(rec.p.clone(), direction);
+        *scattered = Ray::new(rec.p.clone(), direction, r_in.time());
         true
     }
 }

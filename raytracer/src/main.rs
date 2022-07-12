@@ -60,7 +60,7 @@ pub fn hit_sphere(center:Vec3,radius:f64,r:&Ray) -> f64 {
     if discriminant < 0.0 {
         -1.0
     }else{
-        (-half_b - discriminant.sqrt())  / a
+        (-half_b - discriminant.sqrt()) / a
     }
 }
 
@@ -70,7 +70,7 @@ pub fn ray_color(r:&Ray,world:&hit::HitList,depth:u32)->Vec3{
     }
     let mut rec = HitRecord::new(Rc::new(Lambertian::new(Vec3::new(0.0,0.0,0.0))));
     if world.hit((*r).clone(),0.00001,INFINITY,&mut rec){
-        let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0));
+        let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0),1.0);
         let mut attenuation = Vec3::new(0.0,0.0,0.0);
         if rec.material.scatter(&r, &rec, &mut attenuation, &mut scattered){
             return Vec3::elemul(attenuation, ray_color(&scattered, world, depth - 1));
@@ -101,12 +101,16 @@ fn random_scene()->hit::HitList{
                 if (choose_mat < 0.8) {
                     let albedo =Vec3::elemul(Vec3::random(),Vec3::random());
                     let sphere_material = Rc::new(Lambertian::new(albedo));
-                    world.add(Box::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
+                    let center2 = center.clone()+Vec3::new(0.0,random_double_in_range(0.0,0.5),0.0);
+                    world.add(Box::new(sphere::MovingSphere::new(center.clone(),center2.clone(),0.0,1.0,0.2,sphere_material.clone())));
+                    //world.add(Box::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
                 } else if (choose_mat < 0.95) {
                     let albedo = Vec3::random_in_range(0.5, 1.0);
                     let fuzz = random_double_in_range(0.0, 0.5);
                     let sphere_material = Rc::new(Metal::new(albedo, fuzz));
                     world.add(Box::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
+                }else if (choose_mat < 0.8) {
+                    
                 } else {
                     let sphere_material = Rc::new(Dielectric::new(1.5));
                     world.add(Box::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
@@ -129,10 +133,10 @@ fn random_scene()->hit::HitList{
 
 
 fn main() {
-    const aspect_ratio:f64 = 3.0 / 2.0;
-    const image_width:u32 = 1200;
+    const aspect_ratio:f64 = 16.0 / 9.0;
+    const image_width:u32 = 400;
     const image_height:u32 =(image_width as f64/ aspect_ratio)as u32;
-    const samples_per_pixel:u32 = 500;
+    const samples_per_pixel:u32 = 100;
     const max_depth:u32 = 50;
     let r = (PI / 4.0).cos();
     let world=random_scene();;
@@ -142,7 +146,7 @@ fn main() {
     let vup=Vec3::new(0.0,1.0,0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
-    let cam = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus);
+    let cam = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus,0.0,1.0);
 
     print!("P3\n{} {}\n255\n", image_width, image_height);
     for j in (0..image_height).rev(){
