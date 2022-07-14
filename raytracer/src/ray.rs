@@ -29,9 +29,9 @@ impl Ray {
     }
     pub fn new(orig:Vec3,dir:Vec3, time: f64)->Self{
         Self {
-            orig:Vec3::new(0.0,0.0,0.0),
-            dir:Vec3::new(0.0,0.0,0.0),
-            time:0.0,
+            orig:orig,
+            dir:dir,
+            time:time,
         }
     }
 }

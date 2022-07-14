@@ -70,7 +70,7 @@ pub fn ray_color(r:&Ray,world:&hit::HitList,depth:u32)->Vec3{
     }
     let mut rec = HitRecord::new(Rc::new(Lambertian::new(Vec3::new(0.0,0.0,0.0))));
     if world.hit((*r).clone(),0.00001,INFINITY,&mut rec){
-        let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0),1.0);
+        let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0),0.0);
         let mut attenuation = Vec3::new(0.0,0.0,0.0);
         if rec.material.scatter(&r, &rec, &mut attenuation, &mut scattered){
             return Vec3::elemul(attenuation, ray_color(&scattered, world, depth - 1));
@@ -109,8 +109,6 @@ fn random_scene()->hit::HitList{
                     let fuzz = random_double_in_range(0.0, 0.5);
                     let sphere_material = Rc::new(Metal::new(albedo, fuzz));
                     world.add(Box::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
-                }else if (choose_mat < 0.8) {
-                    
                 } else {
                     let sphere_material = Rc::new(Dielectric::new(1.5));
                     world.add(Box::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
