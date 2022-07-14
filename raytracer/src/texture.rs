@@ -1,9 +1,23 @@
+extern crate image;
 use crate::vec3::Vec3;
 use crate::perlin::*;
 use std::sync::Arc;
+use image::*;
+
+pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
+    if x < min {
+        min
+    } else if x > max {
+        max
+    } else {
+        x
+    }
+}
+
 pub trait Texture: Sync + Send {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3;
 }
+
 pub struct SolidColor {
     color_value: Vec3,
 }
@@ -20,6 +34,7 @@ impl Texture for SolidColor {
         self.color_value.clone()
     }
 }
+
 pub struct CheckerTexture {
     odd: Arc<dyn Texture>,
     even: Arc<dyn Texture>,
@@ -45,6 +60,7 @@ impl Texture for CheckerTexture {
         }
     }
 }
+
 pub struct NoiseTexture {
     scale: f64,
     noise: Perlin,

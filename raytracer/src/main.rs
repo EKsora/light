@@ -1,4 +1,5 @@
 extern crate rand;
+extern crate image;
 mod vec3;
 pub use vec3::Vec3;
 mod ray;
@@ -12,10 +13,14 @@ pub use hit::*;
 mod sphere;
 mod aabb;
 mod bvh;
+mod r#box;
+mod aarect;
+pub use aarect::*;
 mod texture;
 pub use texture::*;
 mod perlin;
 pub use crate::bvh::BVHNode;
+pub use image::*;
 type Point3=Vec3;
 type Color=Vec3;
 use std::sync::Arc;
@@ -70,19 +75,18 @@ pub fn hit_sphere(center:Vec3,radius:f64,r:&Ray) -> f64 {
     }
 }
 
-pub fn ray_color(r:&Ray,world:&Arc<BVHNode>,depth:u32)->Vec3{
+pub fn ray_color(r:&Ray,background:&Vec3,world:&Arc<BVHNode>,depth:u32)->Vec3{
     if depth<=0{
         return Vec3::new(0.0,0.0,0.0);
     }
     let mut rec = HitRecord::new(Arc::new(Lambertian::new(Vec3::new(0.0,0.0,0.0))));
-    if world.hit(&(r).clone(),0.00001,INFINITY,&mut rec){
-        let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0),0.0);
-        let mut attenuation = Vec3::new(0.0,0.0,0.0);
-        if rec.material.scatter(&r, &rec, &mut attenuation, &mut scattered){
-            return Vec3::elemul(attenuation, ray_color(&scattered, world, depth - 1));
-        }
-        return Vec3::new(0.0,0.0,0.0);
-    }else{
+    if !world.hit(&r, 0.001, INFINITY, &mut rec) { return *background; }
+    let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0),0.0);
+    let mut attenuation = Vec3::new(0.0,0.0,0.0);let emitted =rec.material.emitted(rec.u,rec.v,&rec.p);
+    if !rec.material.scatter(&r, &rec, &mut attenuation, &mut scattered){
+        return emitted;
+    }
+    /*else{
     let unit_direction=Vec3{
         x:r.direction().unit().x,
         y:r.direction().unit().y,
@@ -90,7 +94,8 @@ pub fn ray_color(r:&Ray,world:&Arc<BVHNode>,depth:u32)->Vec3{
     };
     let t = 0.5*(unit_direction.y + 1.0);
     Vec3::new(1.0, 1.0, 1.0)*(1.0-t) + Vec3::new(0.5, 0.7, 1.0)*t
-    }
+    }*/
+    emitted+Vec3::elemul(attenuation,ray_color(&scattered,background,world,depth-1))
 }
 
 fn random_scene()->hit::HitList{
@@ -155,47 +160,110 @@ pub fn two_perlin_spheres() -> HitList {
     world
 }
 
+pub fn earth() -> HitList {
+    let mut world = HitList::new();
+    world
+}
+
+pub fn simple_light() -> HitList {
+    let mut world = HitList::new();
+    let pertext = Arc::new(NoiseTexture::new(4.0));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0,-1000.0,0.0),1000.0,Arc::new(Lambertian::new_texture(pertext.clone())))));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0,2.0,0.0),2.0,Arc::new(Lambertian::new_texture(pertext)).clone())));
+    let diff_light = Arc::new(DiffuseLight::new(Vec3::new(4.0,4.0,4.0)));
+    world.add(Arc::new(XYRectangle::new(3.0,5.0,1.0,3.0,-2.0,diff_light)));
+    world
+}
+
+pub fn cornell_box() -> HitList {
+    let mut world = HitList::new();
+    let red = Arc::new(Lambertian::new(Vec3::new(0.65,0.05,0.05)));
+    let white = Arc::new(Lambertian::new(Vec3::new(0.73,0.73,0.73)));
+    let green = Arc::new(Lambertian::new(Vec3::new(0.12,0.45,0.15)));
+    let light = Arc::new(DiffuseLight::new(Vec3::new(15.0,15.0,15.0)));
+
+    world.add(Arc::new(YZRectangle::new(0.0,555.0,0.0,555.0,555.0,green)));
+    world.add(Arc::new(YZRectangle::new(0.0,555.0,0.0,555.0,0.0,red)));
+    world.add(Arc::new(XZRectangle::new(213.0,343.0,227.0,332.0,554.0, light)));
+    world.add(Arc::new(XZRectangle::new(0.0,555.0,0.0,555.0,0.0,white.clone())));
+    world.add(Arc::new(XZRectangle::new(0.0,555.0,0.0,555.0,555.0,white.clone())));
+    world.add(Arc::new(XYRectangle::new(0.0,555.0,0.0,555.0,555.0,white.clone())));
+    world
+}
+
 fn main() {
-    const aspect_ratio:f64 = 16.0 / 9.0;
-    const image_width:u32 = 400;
-    const image_height:u32 =(image_width as f64/ aspect_ratio)as u32;
-    const samples_per_pixel:u32 = 100;
+    let mut aspect_ratio: f64 = 16.0 / 9.0;
+    let mut image_width: usize = 400;
     const max_depth:u32 = 50;
+    let mut samples_per_pixel:u32 = 100;
     let r = (PI / 4.0).cos(); 
-    //let hit_list = Arc::new(random_scene());
     let hit_list: Arc<HitList>;
     let lookfrom: Vec3;
     let lookat: Vec3;
+    let background: Vec3;
     let vfov: f64;
     let mut aperture=0.0;
-    match 0 {
+    match 6 {
         1 => {
-            hit_list = Arc::new(random_scene());
-            lookfrom = Vec3::new(13.0, 2.0, 3.0);
-            lookat = Vec3::new(0.0, 0.0, 0.0);
-            vfov = 20.0;
-            aperture = 0.1;
+            hit_list=Arc::new(random_scene());
+            background=Vec3::new(0.7,0.8,1.0);
+            lookfrom=Vec3::new(13.0,2.0,3.0);
+            lookat=Vec3::new(0.0,0.0,0.0);
+            vfov=20.0;
+            aperture=0.1;
         }
         2 => {
-            hit_list = Arc::new(two_spheres());
-            lookfrom = Vec3::new(13.0, 2.0, 3.0);
-            lookat = Vec3::new(0.0, 0.0, 0.0);
-            vfov = 20.0;
+            hit_list=Arc::new(two_spheres());
+            background=Vec3::new(0.7,0.8,1.0);
+            lookfrom=Vec3::new(13.0,2.0,3.0);
+            lookat=Vec3::new(0.0,0.0,0.0);
+            vfov=20.0;
+        }
+        3 => {
+            hit_list=Arc::new(two_perlin_spheres());
+            background=Vec3::new(0.7,0.8,1.0);
+            lookfrom=Vec3::new(13.0,2.0,3.0);
+            lookat=Vec3::new(0.0,0.0,0.0);
+            vfov=20.0;
+        }
+        4 => {
+            hit_list=Arc::new(earth());
+            background=Vec3::new(0.7,0.8,1.0);
+            lookfrom=Vec3::new(13.0,2.0,3.0);
+            lookat=Vec3::new(0.0,0.0,0.0);
+            vfov=20.0;
+        }
+        5 => {
+            hit_list=Arc::new(simple_light());
+            samples_per_pixel=400;
+            background=Vec3::zero();
+            lookfrom=Vec3::new(26.0,3.0,6.0);
+            lookat=Vec3::new(0.0,2.0,0.0);
+            vfov=20.0;
+        }
+        6 => {
+            hit_list=Arc::new(cornell_box());
+            aspect_ratio=1.0;
+            image_width=600;
+            samples_per_pixel=200;
+            background=Vec3::zero();
+            lookfrom=Vec3::new(278.0,278.0,-800.0);
+            lookat=Vec3::new(278.0,278.0,0.0);
+            vfov=40.0;
         }
         _ => {
-            hit_list = Arc::new(two_perlin_spheres());
-            lookfrom = Vec3::new(13.0, 2.0, 3.0);
-            lookat = Vec3::new(0.0, 0.0, 0.0);
-            vfov = 20.0;
+            hit_list=Arc::new(HitList::new());
+            background=Vec3::new(0.0,0.0,0.0);
+            lookfrom=Vec3::new(0.0,0.0,0.0);
+            lookat=Vec3::new(0.0,0.0,0.0);
+            vfov=40.0;
         }
     }
 
+    let mut image_height:usize =(image_width as f64/ aspect_ratio)as usize;
     let world = Arc::new(BVHNode::new(&mut hit_list.list.clone(),0,hit_list.list.len(),0.0,1.0,));
-    //let lookfrom=Vec3::new(13.0,2.0,3.0);
-    //let lookat=Vec3::new(0.0,0.0,0.0);
     let vup=Vec3::new(0.0,1.0,0.0);
     let dist_to_focus = 10.0;
-    //let aperture = 0.1;
     let cam = Camera::new(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus,0.0,1.0);
 
     print!("P3\n{} {}\n255\n", image_width, image_height);
@@ -206,7 +274,7 @@ fn main() {
                 let u = (i as f64 + random_double()) / (image_width as f64);
                 let v = (j as f64 + random_double()) / (image_height as f64);
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, &world,max_depth);
+                pixel_color += ray_color(&r,&background,&world,max_depth);
             }
             write_color(pixel_color, samples_per_pixel);
         }

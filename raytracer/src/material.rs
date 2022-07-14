@@ -11,6 +11,7 @@ pub fn fmin(a: f64, b: f64) -> f64 {
 
 pub trait Material {
     fn scatter(&self,r_in: &Ray,rec: &HitRecord,attenuation: &mut Vec3,scattered: &mut Ray) -> bool;
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 { Vec3::zero() }
 }
 
 pub struct Lambertian {
@@ -95,5 +96,33 @@ impl Material for Dielectric {
             };
         *scattered = Ray::new(rec.p.clone(), direction, r_in.time());
         true
+    }
+}
+pub struct DiffuseLight {
+    emit: Arc<dyn Texture>,
+}
+impl DiffuseLight {
+    pub fn new(emit: Vec3) -> Self {
+        Self {
+            emit: Arc::new(SolidColor::new(emit)),
+        }
+    }
+    #[allow(dead_code)]
+    pub fn new_texture(emit: Arc<dyn Texture>) -> Self {
+        Self { emit }
+    }
+}
+impl Material for DiffuseLight {
+    fn scatter(
+        &self,
+        _r_in: &Ray,
+        _rec: &HitRecord,
+        _attenuation: &mut Vec3,
+        _scattered: &mut Ray,
+    ) -> bool {
+        false
+    }
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        self.emit.value(u, v, p)
     }
 }
