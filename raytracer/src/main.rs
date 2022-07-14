@@ -13,8 +13,8 @@ mod sphere;
 mod aabb;
 mod bvh;
 mod texture;
-use texture::CheckerTexture;
-use crate::bvh::BVHNode;
+pub use texture::CheckerTexture;
+pub use crate::bvh::BVHNode;
 type Point3=Vec3;
 type Color=Vec3;
 use std::sync::Arc;
@@ -135,6 +135,18 @@ fn random_scene()->hit::HitList{
     world
 }
 
+pub fn two_spheres() -> HitList {
+    let mut world = HitList::new();
+
+    let checker = Arc::new(CheckerTexture::new_rgb(
+        Vec3::new(0.2, 0.3, 0.1),
+        Vec3::new(0.9, 0.9, 0.9),
+    ));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0,-10.0,0.0),10.0,Arc::new(Lambertian::new_texture(checker.clone())))));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0,10.0,0.0),10.0,Arc::new(Lambertian::new_texture(checker.clone())))));
+    world
+}
+
 
 fn main() {
     const aspect_ratio:f64 = 16.0 / 9.0;
@@ -143,15 +155,35 @@ fn main() {
     const samples_per_pixel:u32 = 100;
     const max_depth:u32 = 50;
     let r = (PI / 4.0).cos(); 
-    let hit_list = Arc::new(random_scene());
-    let world = Arc::new(BVHNode::new(&mut hit_list.list.clone(),0,hit_list.list.len(),0.0,1.0,));
+    //let hit_list = Arc::new(random_scene());
+    let hit_list: Arc<HitList>;
+    let lookfrom: Vec3;
+    let lookat: Vec3;
+    let vfov: f64;
+    let mut aperture=0.0;
+    match 0 {
+        1 => {
+            hit_list = Arc::new(random_scene());
+            lookfrom = Vec3::new(13.0, 2.0, 3.0);
+            lookat = Vec3::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+            aperture = 0.1;
+        }
+        _ => {
+            hit_list = Arc::new(two_spheres());
+            lookfrom = Vec3::new(13.0, 2.0, 3.0);
+            lookat = Vec3::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+        }
+    }
 
-    let lookfrom=Vec3::new(13.0,2.0,3.0);
-    let lookat=Vec3::new(0.0,0.0,0.0);
+    let world = Arc::new(BVHNode::new(&mut hit_list.list.clone(),0,hit_list.list.len(),0.0,1.0,));
+    //let lookfrom=Vec3::new(13.0,2.0,3.0);
+    //let lookat=Vec3::new(0.0,0.0,0.0);
     let vup=Vec3::new(0.0,1.0,0.0);
     let dist_to_focus = 10.0;
-    let aperture = 0.1;
-    let cam = Camera::new(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus,0.0,1.0);
+    //let aperture = 0.1;
+    let cam = Camera::new(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus,0.0,1.0);
 
     print!("P3\n{} {}\n255\n", image_width, image_height);
     for j in (0..image_height).rev(){
