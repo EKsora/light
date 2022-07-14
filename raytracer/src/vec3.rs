@@ -5,7 +5,7 @@ use std::ops::{Div};
 use std::ops::{Neg};
 extern crate rand;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq,Copy)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
