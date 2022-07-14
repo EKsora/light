@@ -12,10 +12,12 @@ pub use hit::*;
 mod sphere;
 mod aabb;
 mod bvh;
+mod texture;
+use texture::CheckerTexture;
 use crate::bvh::BVHNode;
 type Point3=Vec3;
 type Color=Vec3;
-use std::rc::Rc;
+use std::sync::Arc;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
 
@@ -67,11 +69,11 @@ pub fn hit_sphere(center:Vec3,radius:f64,r:&Ray) -> f64 {
     }
 }
 
-pub fn ray_color(r:&Ray,world:&Rc<BVHNode>,depth:u32)->Vec3{
+pub fn ray_color(r:&Ray,world:&Arc<BVHNode>,depth:u32)->Vec3{
     if depth<=0{
         return Vec3::new(0.0,0.0,0.0);
     }
-    let mut rec = HitRecord::new(Rc::new(Lambertian::new(Vec3::new(0.0,0.0,0.0))));
+    let mut rec = HitRecord::new(Arc::new(Lambertian::new(Vec3::new(0.0,0.0,0.0))));
     if world.hit(&(r).clone(),0.00001,INFINITY,&mut rec){
         let mut scattered = Ray::new(Vec3::new(0.0,0.0,0.0),Vec3::new(0.0,0.0,0.0),0.0);
         let mut attenuation = Vec3::new(0.0,0.0,0.0);
@@ -92,8 +94,9 @@ pub fn ray_color(r:&Ray,world:&Rc<BVHNode>,depth:u32)->Vec3{
 
 fn random_scene()->hit::HitList{
     let mut world = hit::HitList::new();
-    let material_ground = Rc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
-    world.add(Rc::new(sphere::Sphere::new(Vec3::new(0.0, -1000.0, 0.0),1000.0,material_ground.clone())));
+    //let material_ground = Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
+    let checker = Arc::new(CheckerTexture::new_rgb(Vec3::new(0.2, 0.3, 0.1),Vec3::new(0.9, 0.9, 0.9),));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0, -1000.0, 0.0),1000.0,Arc::new(Lambertian::new_texture(checker)))));
 
     for a in -11..11{
         for b in -11..11{
@@ -103,31 +106,31 @@ fn random_scene()->hit::HitList{
             if (center.clone() - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if (choose_mat < 0.8) {
                     let albedo =Vec3::elemul(Vec3::random(),Vec3::random());
-                    let sphere_material = Rc::new(Lambertian::new(albedo));
+                    let sphere_material = Arc::new(Lambertian::new(albedo));
                     let center2 = center.clone()+Vec3::new(0.0,random_double_in_range(0.0,0.5),0.0);
-                    world.add(Rc::new(sphere::MovingSphere::new(center.clone(),center2.clone(),0.0,1.0,0.2,sphere_material.clone())));
-                    //world.add(Rc::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
+                    world.add(Arc::new(sphere::MovingSphere::new(center.clone(),center2.clone(),0.0,1.0,0.2,sphere_material.clone())));
+                    //world.add(Arc::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
                 } else if (choose_mat < 0.95) {
                     let albedo = Vec3::random_in_range(0.5, 1.0);
                     let fuzz = random_double_in_range(0.0, 0.5);
-                    let sphere_material = Rc::new(Metal::new(albedo, fuzz));
-                    world.add(Rc::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
+                    let sphere_material = Arc::new(Metal::new(albedo, fuzz));
+                    world.add(Arc::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
                 } else {
-                    let sphere_material = Rc::new(Dielectric::new(1.5));
-                    world.add(Rc::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
+                    let sphere_material = Arc::new(Dielectric::new(1.5));
+                    world.add(Arc::new(sphere::Sphere::new(center.clone(),0.2,sphere_material.clone())));
                 }
             }
         }
     }
 
-    let material1 = Rc::new(Dielectric::new(1.5));
-    world.add(Rc::new(sphere::Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, material1.clone())));
+    let material1 = Arc::new(Dielectric::new(1.5));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, material1.clone())));
 
-    let material2 = Rc::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1)));
-    world.add(Rc::new(sphere::Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, material2.clone())));
+    let material2 = Arc::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1)));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, material2.clone())));
 
-    let material3 = Rc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Rc::new(sphere::Sphere::new(Vec3::new(4.0, 1.0, 0.0), 1.0, material3.clone())));
+    let material3 = Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(4.0, 1.0, 0.0), 1.0, material3.clone())));
 
     world
 }
@@ -140,8 +143,8 @@ fn main() {
     const samples_per_pixel:u32 = 100;
     const max_depth:u32 = 50;
     let r = (PI / 4.0).cos(); 
-    let hit_list = Rc::new(random_scene());
-    let world = Rc::new(BVHNode::new(&mut hit_list.list.clone(),0,hit_list.list.len(),0.0,1.0,));
+    let hit_list = Arc::new(random_scene());
+    let world = Arc::new(BVHNode::new(&mut hit_list.list.clone(),0,hit_list.list.len(),0.0,1.0,));
 
     let lookfrom=Vec3::new(13.0,2.0,3.0);
     let lookat=Vec3::new(0.0,0.0,0.0);

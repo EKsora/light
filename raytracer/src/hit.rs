@@ -2,21 +2,25 @@ use crate::ray::Ray;
 use crate::aabb::*;
 use crate::vec3::Vec3;
 use crate::material::Material;
-use std::rc::Rc;
+use std::sync::Arc;
 #[derive(Clone)]
 pub struct HitRecord {
     pub p: Vec3,      
     pub normal: Vec3, 
-    pub material: Rc<dyn Material>, 
-    pub t: f64,       
+    pub material: Arc<dyn Material>, 
+    pub t: f64,      
+    pub u: f64,
+    pub v: f64, 
     pub front_face: bool,
 }
 impl HitRecord {
-    pub fn new(material: Rc<dyn Material>) -> Self {
+    pub fn new(material: Arc<dyn Material>) -> Self {
         Self {
             p: Vec3::zero(),
             normal: Vec3::zero(),
             t: 0.0,
+            u: 0.0,
+            v: 0.0,
             front_face: true,
             material:material,
         }
@@ -35,6 +39,8 @@ impl HitRecord {
             normal:self.normal.clone(),
             material:self.material.clone(),
             t:self.t,
+            u:self.t,
+            v:self.t,
             front_face:self.front_face,
         }
     }
@@ -44,13 +50,13 @@ pub trait Hittable {
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool;
 }
 pub struct HitList {
-    pub list: Vec<Rc<dyn Hittable>>,
+    pub list: Vec<Arc<dyn Hittable>>,
 }
 impl HitList {
     pub fn new() -> Self {
         Self { list: Vec::new() }
     }
-    pub fn add(&mut self, object: Rc<dyn Hittable>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.list.push(object);
     }
     pub fn clear(&mut self) {

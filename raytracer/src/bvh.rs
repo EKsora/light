@@ -2,15 +2,15 @@ use crate::aabb::*;
 use crate::hit::*;
 use crate::Ray;
 use std::cmp::Ordering;
-use std::rc::Rc;
+use std::sync::Arc;
 use std::usize;
 use std::vec::Vec;
 use crate::Vec3;
 #[derive(Clone)]
 pub struct BVHNode {
     pub bbox: AABB,
-    pub left: Rc<dyn Hittable>,
-    pub right: Rc<dyn Hittable>,
+    pub left: Arc<dyn Hittable>,
+    pub right: Arc<dyn Hittable>,
 }
 pub fn random_int_in_range(min: u32, max: u32) -> u32 {
     (min as f64 + (max as f64 +1.0 - min as f64) * rand::random::<f64>())as u32
@@ -26,7 +26,7 @@ pub fn box_cmp(a: f64, b: f64)->Ordering{
 }
 impl BVHNode {
     pub fn new(
-        objects: &mut Vec<Rc<dyn Hittable>>,
+        objects: &mut Vec<Arc<dyn Hittable>>,
         start: usize,
         end: usize,
         time0: f64,
@@ -41,8 +41,8 @@ impl BVHNode {
             box_z_compare
         }; 
         let object_span = end - start;
-        let left: Rc<dyn Hittable>;
-        let right: Rc<dyn Hittable>;
+        let left: Arc<dyn Hittable>;
+        let right: Arc<dyn Hittable>;
         if object_span == 1 {
             left = objects[start].clone();
             right = objects[start].clone();
@@ -57,8 +57,8 @@ impl BVHNode {
         } else {
             objects[start..end].sort_by(comparator);
             let mid = start + object_span / 2;
-            left = Rc::new(Self::new(objects, start, mid, time0, time1));
-            right = Rc::new(Self::new(objects, mid, end, time0, time1));
+            left = Arc::new(Self::new(objects, start, mid, time0, time1));
+            right = Arc::new(Self::new(objects, mid, end, time0, time1));
         }
         let mut box_left: AABB = Default::default();
         let mut box_right: AABB = Default::default();
@@ -96,7 +96,7 @@ impl Hittable for BVHNode {
         hit_left || hit_right
     }
 }
-pub fn box_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>, axis: u32) -> Ordering {
+pub fn box_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>, axis: u32) -> Ordering {
     let mut box_a=AABB::new(Vec3::ones(),Vec3::ones());
     let mut box_b=AABB::new(Vec3::zero(),Vec3::zero());
 
@@ -106,12 +106,12 @@ pub fn box_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>, axis: u32) -> Ord
     box_cmp(box_a.min().clone().get(axis),box_b.min().clone().get(axis))
 }
 
-pub fn box_x_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) -> Ordering {
+pub fn box_x_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
     box_compare(a, b, 0)
 }
-pub fn box_y_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) ->Ordering {
+pub fn box_y_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) ->Ordering {
     box_compare(a, b, 1)
 }
-pub fn box_z_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) -> Ordering {
+pub fn box_z_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
     box_compare(a, b, 2)
 }

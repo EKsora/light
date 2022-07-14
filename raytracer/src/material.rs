@@ -2,6 +2,8 @@ extern crate rand;
 use crate::hit::HitRecord;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
+use crate::texture::*;
+use std::sync::Arc;
 
 pub fn fmin(a: f64, b: f64) -> f64 {
     if a>b {b} else {a}
@@ -12,11 +14,14 @@ pub trait Material {
 }
 
 pub struct Lambertian {
-    albedo: Vec3,
+    albedo: Arc<dyn Texture>,
 }
 impl Lambertian {
-    pub fn new(albedo: Vec3) -> Self {
-        Self { albedo }
+    pub fn new(a: Vec3) -> Self {
+        Self { albedo: Arc::new(SolidColor::new(a)), }
+    }
+    pub fn new_texture(a: Arc<dyn Texture>) -> Self {
+        Self { albedo: a }
     }
 }
 impl Material for Lambertian {
@@ -26,7 +31,7 @@ impl Material for Lambertian {
             scatter_direction = rec.normal.clone();
         }
         *scattered = Ray::new(rec.p.clone(), scatter_direction, r_in.time());
-        *attenuation = self.albedo.clone();
+        *attenuation = self.albedo.value(rec.u, rec.v, &rec.p.clone());
         true
     }
 }
