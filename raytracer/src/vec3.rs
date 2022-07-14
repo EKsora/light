@@ -134,12 +134,6 @@ impl Vec3 {
     }
 
     pub fn get(&self, index: u32) -> f64 {
-        /*match index {
-            0 => self.x,
-            1 => self.y,
-            2 => self.z,
-            //_ => panic!("Index out of bound!"),
-        }*/
         if index==0{
             self.x
         }else if index==1{
