@@ -1,4 +1,5 @@
 use crate::vec3::Vec3;
+use crate::perlin::*;
 use std::sync::Arc;
 pub trait Texture: Sync + Send {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3;
@@ -42,5 +43,21 @@ impl Texture for CheckerTexture {
         } else {
             self.even.value(u, v, &p.clone())
         }
+    }
+}
+pub struct NoiseTexture {
+    noise: Perlin,
+}
+impl NoiseTexture {
+    pub fn new() -> Self {
+        Self {
+            noise: Perlin::new(),
+        }
+    }
+}
+impl Texture for NoiseTexture {
+    fn value(&self, _u: f64, _v: f64, p: &Vec3) -> Vec3 {
+        let n = self.noise.noise(&p.clone());
+        Vec3::new(n,n,n)
     }
 }

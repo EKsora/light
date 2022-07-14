@@ -13,7 +13,8 @@ mod sphere;
 mod aabb;
 mod bvh;
 mod texture;
-pub use texture::CheckerTexture;
+pub use texture::*;
+mod perlin;
 pub use crate::bvh::BVHNode;
 type Point3=Vec3;
 type Color=Vec3;
@@ -137,7 +138,6 @@ fn random_scene()->hit::HitList{
 
 pub fn two_spheres() -> HitList {
     let mut world = HitList::new();
-
     let checker = Arc::new(CheckerTexture::new_rgb(
         Vec3::new(0.2, 0.3, 0.1),
         Vec3::new(0.9, 0.9, 0.9),
@@ -147,6 +147,13 @@ pub fn two_spheres() -> HitList {
     world
 }
 
+pub fn two_perlin_spheres() -> HitList {
+    let mut world = HitList::new();
+    let pertext = Arc::new(NoiseTexture::new());
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0,-1000.0, 0.0),1000.0,Arc::new(Lambertian::new_texture(pertext.clone())))));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0,2.0,0.0),2.0,Arc::new(Lambertian::new_texture(pertext.clone())))));
+    world
+}
 
 fn main() {
     const aspect_ratio:f64 = 16.0 / 9.0;
@@ -169,8 +176,14 @@ fn main() {
             vfov = 20.0;
             aperture = 0.1;
         }
-        _ => {
+        2 => {
             hit_list = Arc::new(two_spheres());
+            lookfrom = Vec3::new(13.0, 2.0, 3.0);
+            lookat = Vec3::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+        }
+        _ => {
+            hit_list = Arc::new(two_perlin_spheres());
             lookfrom = Vec3::new(13.0, 2.0, 3.0);
             lookat = Vec3::new(0.0, 0.0, 0.0);
             vfov = 20.0;
