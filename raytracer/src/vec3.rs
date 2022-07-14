@@ -132,6 +132,25 @@ impl Vec3 {
         let r_out_parallel = -n.clone() * (1.0 - r_out_perpendicular.clone().squared_length()).abs().sqrt();
         r_out_perpendicular.clone() + r_out_parallel.clone()
     }
+
+    pub fn get(&self, index: u32) -> f64 {
+        /*match index {
+            0 => self.x,
+            1 => self.y,
+            2 => self.z,
+            //_ => panic!("Index out of bound!"),
+        }*/
+        if index==0{
+            self.x
+        }else if index==1{
+            self.y
+        }else if index==2{
+            self.z
+        }else{
+            panic!()
+        }
+    }
+
 }
 
 impl Add for Vec3 {
