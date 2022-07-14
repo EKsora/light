@@ -37,8 +37,8 @@ impl CheckerTexture {
 }
 impl Texture for CheckerTexture {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
-        let sines = (p.clone().x * 10.).sin() * (p.clone().y * 10.).sin() * (p.clone().z * 10.).sin();
-        if sines < 0. {
+        let sines = (p.clone().x * 10.0).sin() * (p.clone().y * 10.0).sin() * (p.clone().z * 10.0).sin();
+        if sines < 0.0 {
             self.odd.value(u, v, &p.clone())
         } else {
             self.even.value(u, v, &p.clone())
@@ -46,18 +46,20 @@ impl Texture for CheckerTexture {
     }
 }
 pub struct NoiseTexture {
+    scale: f64,
     noise: Perlin,
 }
 impl NoiseTexture {
-    pub fn new() -> Self {
+    pub fn new(scale: f64) -> Self {
         Self {
+            scale: scale,
             noise: Perlin::new(),
         }
     }
 }
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: &Vec3) -> Vec3 {
-        let n = self.noise.noise(&p.clone());
+        let n = self.noise.noise(&((*p).clone()*self.scale));
         Vec3::new(n,n,n)
     }
 }

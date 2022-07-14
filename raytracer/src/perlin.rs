@@ -32,9 +32,12 @@ impl Perlin {
         let k = ((p.z * 4.) as u32 & 255) as usize;
         self.ran_float[(self.perm_x[i] ^ self.perm_y[j] ^ self.perm_z[k]) as usize]
     */
-    let u = p.x - p.x.floor();
-    let v = p.y - p.y.floor();
-    let w = p.z - p.z.floor();
+    let mut u=p.x-p.x.floor();
+    let mut v=p.y-p.y.floor();
+    let mut w=p.z-p.z.floor();
+    u=u*u*(3.0-2.0*u);
+    v=v*v*(3.0-2.0*v);
+    w=w*w*(3.0-2.0*w);
     let i = p.x.floor() as u32;
     let j = p.y.floor() as u32;
     let k = p.z.floor() as u32;
