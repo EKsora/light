@@ -13,7 +13,8 @@ pub use hit::*;
 mod sphere;
 mod aabb;
 mod bvh;
-mod r#box;
+mod cbox;
+pub use cbox::*;
 mod aarect;
 pub use aarect::*;
 mod texture;
@@ -188,6 +189,8 @@ pub fn cornell_box() -> HitList {
     world.add(Arc::new(XZRectangle::new(0.0,555.0,0.0,555.0,0.0,white.clone())));
     world.add(Arc::new(XZRectangle::new(0.0,555.0,0.0,555.0,555.0,white.clone())));
     world.add(Arc::new(XYRectangle::new(0.0,555.0,0.0,555.0,555.0,white.clone())));
+    world.add(Arc::new(CornellBox::new(Vec3::new(130.0,0.0,65.0),Vec3::new(295.0,165.0,230.0),white.clone())));
+    world.add(Arc::new(CornellBox::new(Vec3::new(265.0,0.0,295.0),Vec3::new(430.0,330.0,460.0),white.clone())));
     world
 }
 
