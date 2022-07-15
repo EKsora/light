@@ -4,6 +4,7 @@ use crate::vec3::Vec3;
 use crate::material::Material;
 use std::sync::Arc;
 #[derive(Clone)]
+
 pub struct HitRecord {
     pub p: Vec3,      
     pub normal: Vec3, 
@@ -49,6 +50,7 @@ pub trait Hittable {
     fn hit(&self, ray:&Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool;
 }
+
 pub struct HitList {
     pub list: Vec<Arc<dyn Hittable>>,
 }
@@ -83,7 +85,6 @@ impl Hittable for HitList {
         }
         let mut temp_box: AABB = Default::default();
         let mut first_box = true;
-
         for object in self.list.iter() {
             if !object.bounding_box(time0, time1, &mut temp_box.clone()) {
                 return false;
@@ -98,3 +99,35 @@ impl Hittable for HitList {
         true
     }
 }
+
+pub struct Translate{
+    pub ptr: Arc<dyn Hittable>,
+    pub offset:Vec3,
+}
+impl Translate{
+    pub fn new(p:Acr<dyn Hittable>,displacement:Vec3)->self{
+        Self{
+            ptr:p.clone(),
+            offset:displacement.clone(),
+        }
+    }
+}
+impl Hittable for Translate{
+    fn hit(&self, r:&Ray, t_min: f64, t_max: f64, rec: &mut HitRecord)->bool{
+        let mut moved_r=Ray::new(r.origin() - offset, r.direction(), r.time());
+        if !(*self.ptr).hit(&mut moved_r,t_min,t_max,&mut rec) {
+            return false;
+        }
+        rec.p += self.offset.clone();
+        rec.set_face_normal(moved_r, rec.normal.clone());
+        return true;
+    }
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB)->bool  {
+        if !(8self.ptr).bounding_box(time0, time1,&mut output_box){
+            return false;
+        }
+        *output_box = aabb::new(output_box.min() + self.offset,output_box.max() + self.offset);
+        return true;
+    }
+}
+
