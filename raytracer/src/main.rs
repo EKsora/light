@@ -22,6 +22,7 @@ pub use texture::*;
 mod perlin;
 pub use crate::bvh::BVHNode;
 pub use image::*;
+pub use image::{ImageBuffer, RgbImage};
 type Point3=Vec3;
 type Color=Vec3;
 use std::sync::Arc;
@@ -162,7 +163,11 @@ pub fn two_perlin_spheres() -> HitList {
 }
 
 pub fn earth() -> HitList {
+    let earth_texture = Arc::new(ImageTexture::new("earthmap.jpg"));
+    let earth_surface = Arc::new(Lambertian::new_texture(earth_texture));
+    let globe = Arc::new(sphere::Sphere::new(Vec3::new(0.0,0.0,0.0),2.0,earth_surface));
     let mut world = HitList::new();
+    world.add(globe);
     world
 }
 
@@ -206,7 +211,7 @@ fn main() {
     let background: Vec3;
     let vfov: f64;
     let mut aperture=0.0;
-    match 6 {
+    match 4 {
         1 => {
             hit_list=Arc::new(random_scene());
             background=Vec3::new(0.7,0.8,1.0);
