@@ -162,17 +162,15 @@ impl RotateY {
                     let z=k as f64 * bbox.max().z+(1-k) as f64 *bbox.min().z;
                     let newx=cos_theta*x+sin_theta*z;
                     let newz=-sin_theta*x+cos_theta*z;
-                    let tmp=Vec3::new(newx,y,newz);
-                    min.x = min.x.min(tmp.x);
-                    max.x = max.x.min(tmp.x);
-                    min.y = min.y.min(tmp.y);
-                    max.y = max.y.min(tmp.y);
-                    min.z = min.z.min(tmp.z);
-                    max.z = max.z.min(tmp.z);
+                    let mut tmp=Vec3::new(newx,y,newz);
+                    for c in 0..3 {
+                        *min.get(c) = min.get(c).min(*tmp.get(c));
+                        *max.get(c) = max.get(c).min(*tmp.get(c));
+                    }
                 }
             }
         }
-        bbox = AABB::new(min, max);
+        bbox = AABB::new(min,max);
         Self {
             ptr,
             sin_theta,
@@ -190,20 +188,20 @@ impl Hittable for RotateY {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
         let mut origin = ray.origin();
         let mut direction = ray.direction();
-        origin.x =ray.origin().x * self.cos_theta - ray.origin().z * self.sin_theta;
-        origin.z =ray.origin().x * self.sin_theta + ray.origin().z * self.cos_theta;
-        direction.x =ray.direction().x * self.cos_theta - ray.direction().z * self.sin_theta;
-        direction.z =ray.direction().x * self.sin_theta + ray.direction().z * self.cos_theta;
+        *origin.get(0) =*ray.origin().get(0) * self.cos_theta - *ray.origin().get(2) * self.sin_theta;
+        *origin.get(2) =*ray.origin().get(0) * self.sin_theta + *ray.origin().get(2) * self.cos_theta;
+        *direction.get(0) =*ray.direction().get(0) * self.cos_theta - *ray.direction().get(2) * self.sin_theta;
+        *direction.get(2) =*ray.direction().get(0) * self.sin_theta + *ray.direction().get(2) * self.cos_theta;
         let rotated_r = Ray::new(origin, direction, ray.time());
         if !self.ptr.hit(&rotated_r, t_min, t_max, rec) {
             return false;
         }
         let mut p = rec.p;
         let mut normal = rec.normal;
-        p.x = rec.p.x * self.cos_theta + rec.p.z * self.sin_theta;
-        p.z = -rec.p.x * self.sin_theta + rec.p.z * self.cos_theta;
-        normal.x = rec.normal.x * self.cos_theta + rec.normal.z * self.sin_theta;
-        normal.z = -rec.normal.x * self.sin_theta + rec.normal.z * self.cos_theta;
+        *p.get(0) = *rec.p.get(0)* self.cos_theta + *rec.p.get(2) * self.sin_theta;
+        *p.get(2) = -*rec.p.get(0) * self.sin_theta + *rec.p.get(2) * self.cos_theta;
+        *normal.get(0) = *rec.normal.get(0) * self.cos_theta + *rec.normal.get(2) * self.sin_theta;
+        *normal.get(2) = -*rec.normal.get(0) * self.sin_theta + *rec.normal.get(2) * self.cos_theta;
         rec.p = p;
         rec.set_face_normal(&rotated_r, normal);
 

@@ -133,13 +133,13 @@ impl Vec3 {
         r_out_perpendicular.clone() + r_out_parallel.clone()
     }
 
-    pub fn get(&self, index: u32) -> f64 {
+    pub fn get(&mut self, index: u32) -> &mut f64 {
         if index==0{
-            self.x
+            &mut self.x
         }else if index==1{
-            self.y
+            &mut self.y
         }else if index==2{
-            self.z
+            &mut self.z
         }else{
             panic!()
         }

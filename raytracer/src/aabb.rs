@@ -19,9 +19,9 @@ impl AABB {
     }
     pub fn hit(&self, r: &Ray, mut t_min: f64, mut t_max: f64) -> bool {
         for a in 0..3 {
-            let inv_dir = 1.0 / r.direction().get(a);
-            let mut t0 = (self.min().clone().get(a) - r.origin().clone().get(a)) * inv_dir;
-            let mut t1 = (self.max().clone().get(a) - r.origin().clone().get(a)) * inv_dir;
+            let inv_dir = 1.0 / *r.direction().get(a);
+            let mut t0 = (*self.min().clone().get(a) - *r.origin().clone().get(a)) * inv_dir;
+            let mut t1 = (*self.max().clone().get(a) - *r.origin().clone().get(a)) * inv_dir;
             if inv_dir < 0. {
                 let tmp=t0;
                 t0=t1;
