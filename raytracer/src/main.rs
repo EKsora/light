@@ -29,8 +29,8 @@ use std::sync::Arc;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
 
-pub fn degrees_to_radians(degrees: f64) {
-    degrees * PI / 180.0;
+pub fn degrees_to_radians(degrees: f64)->f64 {
+    degrees * PI / 180.0
 }
 
 pub fn random_double() -> f64 {
@@ -194,8 +194,8 @@ pub fn cornell_box() -> HitList {
     world.add(Arc::new(XZRectangle::new(0.0,555.0,0.0,555.0,0.0,white.clone())));
     world.add(Arc::new(XZRectangle::new(0.0,555.0,0.0,555.0,555.0,white.clone())));
     world.add(Arc::new(XYRectangle::new(0.0,555.0,0.0,555.0,555.0,white.clone())));
-    world.add(Arc::new(CornellBox::new(Vec3::new(130.0,0.0,65.0),Vec3::new(295.0,165.0,230.0),white.clone())));
-    world.add(Arc::new(CornellBox::new(Vec3::new(265.0,0.0,295.0),Vec3::new(430.0,330.0,460.0),white.clone())));
+    world.add(Arc::new(Translate::new(Arc::new(RotateY::new(Arc::new(CornellBox::new(Vec3::new(0.0,0.0,0.0),Vec3::new(165.0,330.0,165.0),white.clone())),15.0)),Vec3::new(265.0,0.0,295.0))));
+    world.add(Arc::new(Translate::new(Arc::new(RotateY::new(Arc::new(CornellBox::new(Vec3::new(0.0,0.0,0.0),Vec3::new(165.0,165.0,165.0),white.clone())),-18.0)),Vec3::new(130.0,0.0,65.0))));
     world
 }
 
@@ -211,7 +211,7 @@ fn main() {
     let background: Vec3;
     let vfov: f64;
     let mut aperture=0.0;
-    match 4 {
+    match 6 {
         1 => {
             hit_list=Arc::new(random_scene());
             background=Vec3::new(0.7,0.8,1.0);
