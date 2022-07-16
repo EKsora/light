@@ -163,11 +163,12 @@ pub fn two_perlin_spheres() -> HitList {
 }
 
 pub fn earth() -> HitList {
-    let earth_texture = Arc::new(ImageTexture::new("earthmap.jpg"));
-    let earth_surface = Arc::new(Lambertian::new_texture(earth_texture));
-    let globe = Arc::new(sphere::Sphere::new(Vec3::new(0.0,0.0,0.0),2.0,earth_surface));
     let mut world = HitList::new();
-    world.add(globe);
+    let pertext = Arc::new(NoiseTexture::new(4.0));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0,-1000.0,0.0),1000.0,Arc::new(Lambertian::new_texture(pertext.clone())))));
+    world.add(Arc::new(sphere::Sphere::new(Vec3::new(0.0,2.0,0.0),2.0,Arc::new(Lambertian::new_texture(pertext)).clone())));
+    let diff_light = Arc::new(DiffuseLight::new(Vec3::new(4.0,4.0,4.0)));
+    world.add(Arc::new(XYRectangle::new(3.0,5.0,1.0,3.0,-2.0,diff_light)));
     world
 }
 
@@ -235,10 +236,11 @@ fn main() {
             vfov=20.0;
         }
         4 => {
-            hit_list=Arc::new(earth());
-            background=Vec3::new(0.7,0.8,1.0);
-            lookfrom=Vec3::new(13.0,2.0,3.0);
-            lookat=Vec3::new(0.0,0.0,0.0);
+            hit_list=Arc::new(simple_light());
+            samples_per_pixel=400;
+            background=Vec3::zero();
+            lookfrom=Vec3::new(26.0,3.0,6.0);
+            lookat=Vec3::new(0.0,2.0,0.0);
             vfov=20.0;
         }
         5 => {
